@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tutor Response Study</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+
+:root {
+  --ink: #0f0e0c;
+  --paper: #faf8f4;
+  --cream: #f2efe8;
+  --rule: #e0dbd0;
+  --muted: #7a7367;
+  --blue: #1a4a7a;
+  --blue-pale: #eaf0f8;
+  --blue-mid: #c5d8ee;
+  --green: #1a5c3a;
+  --green-pale: #e6f2ec;
+  --amber: #7a4a0a;
+  --amber-pale: #fdf3e3;
+  --red: #8b1a1a;
+  --mono: 'IBM Plex Mono', monospace;
+  --serif: 'Source Serif 4', serif;
+  --display: 'Playfair Display', serif;
+  --sans: 'Outfit', sans-serif;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-lg: 0 2px 8px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Texture overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.4;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── STICKY HEADER ── */
+.top-bar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(242,239,232,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule);
+  padding: 12px 32px;
+  display: flex; align-items: center; gap: 20px;
+}
+.top-bar-logo {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.top-bar-progress { flex: 1; display: flex; align-items: center; gap: 12px; }
+.progress-track {
+  flex: 1; height: 3px; background: var(--rule); border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--blue); border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.progress-text {
+  font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap;
+}
+
+/* ── PAGE CONTENT ── */
+.page {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; padding: 56px 24px 96px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 48px 56px;
+  max-width: 740px; width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp 0.4s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── WELCOME ── */
+.eyebrow {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue);
+  margin-bottom: 14px;
+}
+.display-title {
+  font-family: var(--display); font-size: 30px; font-weight: 600;
+  line-height: 1.25; color: var(--ink); margin-bottom: 22px;
+}
+.body-text {
+  font-family: var(--serif); font-size: 15px; line-height: 1.85;
+  color: #3a3630; margin-bottom: 24px; font-weight: 300;
+}
+.info-panel {
+  border: 1px solid var(--blue-mid);
+  background: var(--blue-pale);
+  border-radius: 4px; padding: 18px 22px;
+  margin-bottom: 32px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.info-text { font-size: 13.5px; line-height: 1.75; color: #1a3050; }
+
+/* ── FORM ── */
+.form-row { margin-bottom: 22px; }
+.field-label {
+  display: block; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 7px;
+}
+.field-input, .field-select {
+  width: 100%; padding: 11px 15px;
+  border: 1px solid var(--rule); border-radius: 4px;
+  background: var(--cream); font-family: var(--sans);
+  font-size: 14px; color: var(--ink);
+  transition: border-color 0.18s, box-shadow 0.18s;
+  appearance: none;
+}
+.field-input:focus, .field-select:focus {
+  outline: none; border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,74,122,0.1);
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── CONSENT ── */
+.consent-scroll {
+  border: 1px solid var(--rule); border-radius: 4px;
+  background: var(--cream); padding: 22px 24px;
+  max-height: 300px; overflow-y: auto; margin-bottom: 24px;
+  font-family: var(--serif); font-size: 13.5px; line-height: 1.85;
+  color: #3a3630; font-weight: 300;
+}
+.consent-scroll p { margin-bottom: 12px; }
+.consent-scroll p:last-child { margin-bottom: 0; }
+.consent-scroll strong { font-weight: 500; color: var(--ink); }
+.check-row {
+  display: flex; gap: 13px; align-items: flex-start; margin-bottom: 28px;
+}
+.check-row input[type=checkbox] {
+  width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;
+  accent-color: var(--blue); cursor: pointer;
+}
+.check-label { font-size: 14px; line-height: 1.65; color: var(--ink); cursor: pointer; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 26px; border-radius: 4px;
+  font-family: var(--sans); font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.18s;
+  letter-spacing: 0.01em;
+}
+.btn-primary { background: var(--blue); color: white; }
+.btn-primary:hover { background: #0f2d4d; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,74,122,0.3); }
+.btn-primary:active { transform: translateY(0); }
+.btn-ghost { background: transparent; border: 1px solid var(--rule); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-pale); }
+.btn-row { display: flex; justify-content: flex-end; gap: 12px; }
+.btn-row-between { display: flex; justify-content: space-between; align-items: center; }
+
+/* ── ERROR ── */
+.err-msg {
+  display: none; margin-top: 10px;
+  background: #fdf0f0; border: 1px solid #e8c0c0;
+  border-radius: 3px; padding: 10px 14px;
+  font-size: 13px; color: var(--red);
+}
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--rule); margin: 32px 0; }
+
+/* ══════════════════════════════════════
+   WAITING SCREEN
+══════════════════════════════════════ */
+.wait-card { text-align: center; }
+
+.question-display {
+  background: var(--blue-pale);
+  border: 1px solid var(--blue-mid);
+  border-radius: 5px; padding: 22px 26px;
+  margin-bottom: 44px; text-align: left;
+}
+.qlabel {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--blue);
+  margin-bottom: 9px; font-weight: 500;
+}
+.qtext {
+  font-family: var(--display); font-size: 17px; line-height: 1.45;
+  color: var(--ink); font-weight: 500;
+}
+
+.wait-center { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+
+/* Animated ring */
+.ring-wrap { position: relative; width: 88px; height: 88px; }
+.ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--rule); stroke-width: 4; }
+.ring-fill {
+  fill: none; stroke: var(--blue); stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.ring-number {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 22px; font-weight: 500;
+  color: var(--blue);
+}
+
+.wait-status {
+  font-size: 13px; color: var(--muted); font-style: italic;
+  line-height: 1.65; max-width: 380px;
+}
+.wait-think {
+  background: var(--amber-pale); border: 1px solid #e8d0a8;
+  border-radius: 4px; padding: 14px 18px;
+  font-size: 13.5px; color: var(--amber);
+  line-height: 1.65; max-width: 420px; text-align: left;
+}
+.wait-think strong { font-weight: 600; }
+
+/* ══════════════════════════════════════
+   RESPONSE SCREEN
+══════════════════════════════════════ */
+.subject-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  background: var(--blue-pale); border: 1px solid var(--blue-mid);
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue);
+  margin-bottom: 18px;
+}
+.prompt-heading {
+  font-family: var(--display); font-size: 20px; font-weight: 500;
+  line-height: 1.4; color: var(--ink); margin-bottom: 26px;
+  padding-bottom: 26px; border-bottom: 1px solid var(--rule);
+}
+.response-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 16px;
+}
+.response-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+.ai-response {
+  font-family: var(--serif); font-size: 14.5px; line-height: 1.9;
+  color: #2a2520; margin-bottom: 36px; font-weight: 300;
+}
+.ai-response p { margin-bottom: 14px; }
+.ai-response ol, .ai-response ul { padding-left: 22px; margin-bottom: 14px; }
+.ai-response li { margin-bottom: 8px; }
+.ai-response strong { font-weight: 500; color: var(--ink); }
+
+/* Section headers inside response screen */
+.section-head {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-head .section-num {
+  background: var(--blue); color: white;
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+}
+
+/* ── WAIT EXPERIENCE PANEL ── */
+.wait-exp-panel {
+  background: var(--amber-pale);
+  border: 1px solid #e8d0a8;
+  border-radius: 5px; padding: 22px 26px;
+  margin-bottom: 32px;
+}
+.wait-exp-title {
+  font-size: 13px; font-weight: 600; color: var(--amber);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.wait-exp-questions { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── QUESTIONS ── */
+.q-block { margin-bottom: 28px; }
+.q-block:last-child { margin-bottom: 0; }
+.q-num {
+  font-family: var(--mono); font-size: 10px; color: var(--blue);
+  font-weight: 500; margin-bottom: 5px;
+}
+.q-stem {
+  font-size: 14.5px; font-weight: 500; line-height: 1.5;
+  color: var(--ink); margin-bottom: 13px;
+}
+.q-hint {
+  font-size: 12px; color: var(--muted); font-style: italic;
+  margin-bottom: 13px; line-height: 1.5;
+}
+
+/* Textarea */
+.q-textarea {
+  width: 100%; padding: 12px 15px;
+  border: 1px solid var(--rule); border-radius: 4px;
+  background: var(--cream); font-family: var(--serif);
+  font-size: 14px; color: var(--ink); resize: vertical;
+  min-height: 86px; line-height: 1.7; font-weight: 300;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.q-textarea:focus {
+  outline: none; border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,74,122,0.1);
+}
+
+/* MCQ */
+.mcq-list { display: flex; flex-direction: column; gap: 8px; }
+.mcq-opt {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 15px; border: 1px solid var(--rule);
+  border-radius: 4px; cursor: pointer; font-size: 14px;
+  color: var(--ink); transition: all 0.15s;
+  background: var(--cream);
+}
+.mcq-opt:hover { border-color: var(--blue); background: var(--blue-pale); }
+.mcq-opt input[type=radio] { accent-color: var(--blue); flex-shrink: 0; }
+.mcq-opt.selected { border-color: var(--blue); background: var(--blue-pale); }
+
+/* Scale */
+.scale-outer { display: flex; flex-direction: column; gap: 8px; }
+.scale-btns { display: flex; gap: 8px; }
+.scale-btn {
+  flex: 1; height: 46px; border-radius: 4px;
+  border: 1px solid var(--rule); background: var(--cream);
+  font-family: var(--mono); font-size: 15px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; color: var(--ink);
+}
+.scale-btn:hover { border-color: var(--blue); background: var(--blue-pale); color: var(--blue); }
+.scale-btn.sel { background: var(--blue); border-color: var(--blue); color: white; }
+.scale-ends {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--muted);
+}
+
+/* Yes/No/Maybe */
+.ynm-list { display: flex; gap: 8px; flex-wrap: wrap; }
+.ynm-opt {
+  flex: 1; min-width: 100px; padding: 11px 14px; text-align: center;
+  border: 1px solid var(--rule); border-radius: 4px;
+  cursor: pointer; font-size: 13.5px; font-weight: 500;
+  transition: all 0.15s; background: var(--cream); color: var(--ink);
+}
+.ynm-opt:hover { border-color: var(--blue); background: var(--blue-pale); color: var(--blue); }
+.ynm-opt.sel { background: var(--blue); border-color: var(--blue); color: white; }
+
+/* ── FINAL SCREEN ── */
+.final-intro { margin-bottom: 36px; }
+.final-intro .display-title { font-size: 24px; }
+
+/* ── THANK YOU ── */
+.ty-icon {
+  width: 64px; height: 64px; background: var(--green-pale);
+  border: 2px solid var(--green); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin: 0 auto 28px;
+}
+.ty-title {
+  font-family: var(--display); font-size: 26px; font-weight: 600;
+  text-align: center; margin-bottom: 18px;
+}
+.ty-body {
+  font-family: var(--serif); font-size: 14.5px; line-height: 1.85;
+  color: #3a3630; margin-bottom: 20px; font-weight: 300; text-align: center;
+}
+.debrief-box {
+  background: var(--green-pale); border: 1px solid #a8d4be;
+  border-radius: 5px; padding: 20px 24px; margin-bottom: 24px;
+  font-size: 13.5px; line-height: 1.75; color: #1a3d2a;
+}
+.debrief-box strong { font-weight: 600; color: var(--green); }
+.data-box {
+  background: var(--cream); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 18px 20px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.8;
+  color: var(--muted); word-break: break-all; margin-bottom: 20px;
+  max-height: 280px; overflow-y: auto;
+}
+.researcher-note {
+  text-align: center; font-size: 13px; color: var(--muted);
+  font-style: italic;
+}
+
+/* Steppers for welcome */
+.steps {
+  display: flex; gap: 0; margin-bottom: 32px;
+  border: 1px solid var(--rule); border-radius: 4px; overflow: hidden;
+}
+.step {
+  flex: 1; padding: 14px 10px; text-align: center;
+  border-right: 1px solid var(--rule); background: var(--cream);
+}
+.step:last-child { border-right: none; }
+.step-num {
+  font-family: var(--mono); font-size: 11px; color: var(--blue);
+  font-weight: 500; margin-bottom: 4px;
+}
+.step-label { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 1 — WELCOME
+══════════════════════════════════════════ -->
+<div id="s-welcome" class="screen active">
+  <div class="page">
+    <div class="card">
+      <div class="eyebrow">Research Study</div>
+      <div class="display-title">How does waiting affect what you understand?</div>
+      <p class="body-text">
+        This study explores how the time you wait for an AI tutor's response affects how well you understand and remember the explanation. You'll work through five short topics — reading an AI explanation after a waiting period, then answering a few questions.
+      </p>
+
+      <div class="steps">
+        <div class="step"><div class="step-num">01</div><div class="step-label">Wait for response</div></div>
+        <div class="step"><div class="step-num">02</div><div class="step-label">Read explanation</div></div>
+        <div class="step"><div class="step-num">03</div><div class="step-label">Answer questions</div></div>
+        <div class="step"><div class="step-num">04</div><div class="step-label">Repeat × 5</div></div>
+      </div>
+
+      <div class="info-panel">
+        <div class="info-icon">ℹ</div>
+        <div class="info-text">
+          The study takes <strong>20–25 minutes</strong>. Some of the waiting periods are deliberately longer than others — this is intentional. Please wait patiently and do not refresh the page. Your participation helps research on AI tutoring for students in low-resource settings.
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="f-name">Your first name</label>
+        <input class="field-input" type="text" id="f-name" placeholder="e.g. Priya">
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label" for="f-age">Your age</label>
+          <input class="field-input" type="number" id="f-age" placeholder="e.g. 16" min="11" max="21">
+        </div>
+        <div class="form-row">
+          <label class="field-label" for="f-year">Year / Grade</label>
+          <input class="field-input" type="text" id="f-year" placeholder="e.g. Year 11">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="f-subj">Subject you feel most comfortable in</label>
+        <select class="field-select" id="f-subj">
+          <option value="">— Select —</option>
+          <option>Mathematics</option>
+          <option>Science</option>
+          <option>Computer Science</option>
+          <option>Humanities / Social Studies</option>
+          <option>Languages</option>
+          <option>None in particular</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="f-device">Do you regularly use AI tools for studying?</label>
+        <select class="field-select" id="f-device">
+          <option value="">— Select —</option>
+          <option>Yes, frequently</option>
+          <option>Sometimes</option>
+          <option>Rarely</option>
+          <option>Never</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="f-group">Which group are you in? <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted)">(Your researcher will tell you)</span></label>
+        <select class="field-select" id="f-group">
+          <option value="">— Ask your researcher —</option>
+          <option value="A">Group A</option>
+          <option value="B">Group B</option>
+        </select>
+      </div>
+
+      <div id="err-welcome" class="err-msg">Please complete all fields before continuing.</div>
+      <div class="btn-row" style="margin-top:28px;">
+        <button class="btn btn-primary" onclick="goConsent()">Continue →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SCREEN 2 — CONSENT
+══════════════════════════════════════════ -->
+<div id="s-consent" class="screen">
+  <div class="page">
+    <div class="card">
+      <div class="eyebrow">Before you begin</div>
+      <div class="display-title" style="font-size:24px;">Participant Information & Consent</div>
+
+      <div class="consent-scroll">
+        <p><strong>Study title:</strong> The Effect of AI Response Latency on Student Comprehension, Working Memory, and Engagement</p>
+        <p><strong>Researcher:</strong> Kushal Khemani (Independent researcher)</p>
+        <p><strong>Purpose:</strong> This study investigates whether the time a student waits for an AI tutoring response affects how well they understand the explanation, how well they can stay focused, and how they experience the interaction. The results will be used in an academic research paper examining how AI tutoring systems can be made more effective and equitable.</p>
+        <p><strong>What you will do:</strong> You will complete five short AI tutoring interactions. In each one, you will be shown a question, wait for a response, read the AI's explanation, and then answer comprehension and experience questions. Some waiting periods are deliberately longer than others — this variation is the focus of the study.</p>
+        <p><strong>Duration:</strong> Approximately 20–25 minutes.</p>
+        <p><strong>Your data:</strong> No personally identifying information is collected. Your age, year group, and all responses will be stored anonymously. Data will only be used for academic research and will not be shared with third parties or your school.</p>
+        <p><strong>Voluntary participation:</strong> Participation is entirely voluntary. You may withdraw at any time without any consequence.</p>
+        <p><strong>Risks:</strong> There are no known risks. The study involves only reading and answering questions.</p>
+        <p><strong>Questions:</strong> If you have any questions before or during the study, please speak with the researcher or supervising teacher.</p>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="consent-cb">
+        <label class="check-label" for="consent-cb">
+          I have read the information above, I understand what the study involves, and I agree to participate voluntarily. I understand my responses will be kept anonymous and used only for research purposes.
+        </label>
+      </div>
+
+      <div id="err-consent" class="err-msg">Please tick the box above to confirm your consent.</div>
+      <div class="btn-row-between">
+        <button class="btn btn-ghost" onclick="show('s-welcome')">← Back</button>
+        <button class="btn btn-primary" onclick="goFirstWait()">Begin Study →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SCREEN 3 — WAITING
+══════════════════════════════════════════ -->
+<div id="s-waiting" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-logo">AI Tutor Study</div>
+    <div class="top-bar-progress">
+      <div class="progress-track"><div class="progress-fill" id="pb-wait"></div></div>
+      <div class="progress-text" id="pl-wait">Topic 1 of 5</div>
+    </div>
+  </div>
+  <div class="page">
+    <div class="card wait-card">
+      <div class="question-display">
+        <div class="qlabel">Your question to the AI tutor</div>
+        <div class="qtext" id="wait-qtext"></div>
+      </div>
+
+      <div class="wait-center">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 88 88">
+            <circle class="ring-track" cx="44" cy="44" r="38"/>
+            <circle class="ring-fill" id="ring-fill" cx="44" cy="44" r="38"
+              stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+          </svg>
+          <div class="ring-number" id="ring-num">—</div>
+        </div>
+
+        <div class="wait-status">The AI tutor is generating a response…</div>
+
+        <div class="wait-think">
+          <strong>While you wait:</strong> Think about what you already know about this topic. What would you expect the explanation to cover? This is good practice for active learning.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4 — RESPONSE + QUESTIONS
+══════════════════════════════════════════ -->
+<div id="s-response" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-logo">AI Tutor Study</div>
+    <div class="top-bar-progress">
+      <div class="progress-track"><div class="progress-fill" id="pb-resp"></div></div>
+      <div class="progress-text" id="pl-resp">Topic 1 of 5</div>
+    </div>
+  </div>
+  <div class="page">
+    <div class="card">
+
+      <!-- Response section -->
+      <div class="subject-pill" id="resp-pill"></div>
+      <div class="prompt-heading" id="resp-prompt"></div>
+      <div class="response-eyebrow">AI Tutor Response</div>
+      <div class="ai-response" id="resp-body"></div>
+
+      <div class="divider"></div>
+
+      <!-- PART A: Waiting experience (per-prompt) -->
+      <div class="wait-exp-panel">
+        <div class="wait-exp-title">⏱ About the wait you just experienced</div>
+        <div class="wait-exp-questions" id="wait-exp-qs"></div>
+      </div>
+
+      <!-- PART B: Comprehension -->
+      <div class="section-head">
+        <div class="section-num">B</div>
+        Comprehension Questions
+      </div>
+      <div id="comp-qs"></div>
+
+      <div id="err-resp" class="err-msg">Please answer all questions above before continuing.</div>
+      <div class="btn-row" style="margin-top:32px;">
+        <button class="btn btn-primary" onclick="submitResponse()">
+          <span id="next-label">Next Topic →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SCREEN 5 — FINAL QUESTIONS
+══════════════════════════════════════════ -->
+<div id="s-final" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-logo">AI Tutor Study</div>
+    <div class="top-bar-progress">
+      <div class="progress-track"><div class="progress-fill" style="width:92%"></div></div>
+      <div class="progress-text">Final section</div>
+    </div>
+  </div>
+  <div class="page">
+    <div class="card">
+      <div class="final-intro">
+        <div class="eyebrow">Almost done</div>
+        <div class="display-title" style="font-size:24px;">Overall Experience</div>
+        <p class="body-text" style="margin-bottom:0;">These final questions are about your overall experience across all five topics — not about any specific subject.</p>
+      </div>
+
+      <div class="q-block">
+        <div class="q-num">F1</div>
+        <div class="q-stem">Overall, how easy was it to stay focused and maintain your train of thought while waiting for the AI responses?</div>
+        <div class="scale-outer">
+          <div class="scale-btns" id="f-focus"></div>
+          <div class="scale-ends"><span>Very difficult to focus</span><span>Very easy to focus</span></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-num">F2</div>
+        <div class="q-stem">Thinking back across all five sessions, did the wait time affect how well you understood the explanations?</div>
+        <div class="ynm-list" id="f-affect">
+          <div class="ynm-opt" onclick="selectYNM(this,'f-affect','Yes, harder')">Yes — made it harder</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-affect','No difference')">No difference</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-affect','Helped me think')">It helped me think first</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-affect','Unsure')">Unsure</div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-num">F3</div>
+        <div class="q-stem">During the waiting periods, what did you find yourself doing?</div>
+        <div class="ynm-list" id="f-during">
+          <div class="ynm-opt" onclick="selectYNM(this,'f-during','Thinking about topic')">Thinking about the topic</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-during','Mind wandered')">My mind wandered</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-during','Felt frustrated')">Felt frustrated / impatient</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-during','Varied')">It varied each time</div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-num">F4</div>
+        <div class="q-stem">How would you describe the ideal wait time before an AI tutor responds, from a learning perspective?</div>
+        <div class="ynm-list" id="f-ideal">
+          <div class="ynm-opt" onclick="selectYNM(this,'f-ideal','Instant')">Instant (under 2s)</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-ideal','Few seconds')">A few seconds (2–10s)</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-ideal','10-20s')">10–20 seconds</div>
+          <div class="ynm-opt" onclick="selectYNM(this,'f-ideal','Longer is fine')">Longer is fine</div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-num">F5</div>
+        <div class="q-stem">In one or two sentences, describe how the waiting periods made you feel during this exercise.</div>
+        <textarea class="q-textarea" id="f-feeling" placeholder="e.g. The longer waits made me lose track of the question. I found myself thinking about other things…" rows="3"></textarea>
+      </div>
+
+      <div class="q-block">
+        <div class="q-num">F6</div>
+        <div class="q-stem">Overall, how would you rate this AI tutoring experience?</div>
+        <div class="scale-outer">
+          <div class="scale-btns" id="f-overall"></div>
+          <div class="scale-ends"><span>Very poor</span><span>Excellent</span></div>
+        </div>
+      </div>
+
+      <div id="err-final" class="err-msg">Please answer all questions above.</div>
+      <div class="btn-row" style="margin-top:32px;">
+        <button class="btn btn-primary" onclick="submitFinal()">Submit Responses →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SCREEN 6 — THANK YOU
+══════════════════════════════════════════ -->
+<div id="s-thankyou" class="screen">
+  <div class="page" style="justify-content:center;">
+    <div class="card" style="text-align:center;">
+      <div class="ty-icon">✓</div>
+      <div class="ty-title">Thank you for participating</div>
+      <p class="ty-body">Your responses have been recorded. This research will contribute to a study on making AI tutoring more effective and accessible for students in schools around the world.</p>
+
+      <div class="debrief-box">
+        <strong>Study Debrief:</strong> You were randomly assigned to a wait condition of <strong id="debrief-group"></strong>. The study is testing whether this difference affects comprehension and engagement — based on Cognitive Load Theory, which predicts that very long waits cause people to lose their mental context, making feedback less effective. Your data will help validate (or challenge) this prediction with real students.
+      </div>
+
+      <p class="ty-body" style="font-size:13px;">Your comprehension scores and wait-experience ratings will be compared with students in the other condition to test whether response time has a measurable effect on learning.</p>
+
+      <div class="data-box" id="final-data"></div>
+      <p class="researcher-note">Please show this screen to the researcher before closing the browser.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+
+const TOPICS = [
+  {
+    id: 61, cat: 'Mathematics',
+    prompt: 'What is a limit in calculus and how do you evaluate lim(x→2) of (x² − 4)/(x − 2)?',
+    response: `<p>In calculus, a <strong>limit</strong> describes the value that a function approaches as its input gets closer and closer to a particular point — even if the function is not actually defined at that point.</p>
+<p>To evaluate lim(x→2) of (x² − 4)/(x − 2), we begin by attempting direct substitution. Plugging in x = 2 gives (4 − 4)/(2 − 2) = 0/0, which is an indeterminate form. The function is not defined at x = 2, but the limit may still exist.</p>
+<p>The key technique here is <strong>factoring</strong>. Notice that the numerator x² − 4 is a difference of squares: x² − 4 = (x − 2)(x + 2). So the expression becomes (x − 2)(x + 2) / (x − 2).</p>
+<p>Since we are taking a limit as x <em>approaches</em> 2 (not at x = 2 itself), we can cancel the (x − 2) terms. This gives us lim(x→2) (x + 2) = 2 + 2 = <strong>4</strong>.</p>
+<p>The function has a hole at x = 2, but it approaches the value 4 from both sides. This is exactly what limits capture: the behaviour of a function near a point, not necessarily at it.</p>`,
+    compQs: [
+      { type:'open', key:'math_open', stem:'In your own words, why can\'t you just substitute x = 2 directly into (x² − 4)/(x − 2)?', hint:'Think about what happens to the denominator.' },
+      { type:'mcq',  key:'math_mcq',  stem:'What technique did the explanation use to solve this limit?',
+        opts:['L\'Hôpital\'s rule','Factoring and cancelling','Drawing a graph','Guessing and checking'], correct:'Factoring and cancelling' },
+      { type:'scale', key:'math_conf', stem:'How confident do you feel solving a similar limit problem right now?', lo:'Not at all confident', hi:'Very confident' }
+    ]
+  },
+  {
+    id: 176, cat: 'Science',
+    prompt: 'What are the main causes of deforestation and its effects on the environment?',
+    response: `<p><strong>Deforestation</strong> — the large-scale removal of forest cover — is driven by several interconnected human activities.</p>
+<p><strong>Main causes:</strong></p>
+<ol>
+<li><strong>Agricultural expansion</strong> — Forests are cleared for farmland (crops like soy and palm oil) or livestock pasture. This is the largest single driver globally.</li>
+<li><strong>Logging</strong> — Both legal and illegal timber harvesting removes trees for wood products and paper. Even selective logging opens forests to further degradation.</li>
+<li><strong>Infrastructure development</strong> — Roads, dams, and urban expansion fragment and destroy habitats.</li>
+<li><strong>Mining</strong> — Extracting minerals and fossil fuels requires clearing vegetation and can contaminate surrounding ecosystems.</li>
+</ol>
+<p><strong>Environmental effects:</strong></p>
+<ol>
+<li><strong>Loss of biodiversity</strong> — Forests contain over 80% of terrestrial species. Habitat destruction pushes many toward extinction.</li>
+<li><strong>Climate change</strong> — Trees store carbon. When cut or burned, stored CO₂ is released, accelerating global warming. Forests also regulate local rainfall — removing them can cause droughts.</li>
+<li><strong>Soil erosion</strong> — Tree roots hold soil in place. Without them, topsoil is washed away, making land infertile and increasing flood risk.</li>
+<li><strong>Disrupted water cycles</strong> — Forests release water vapour through transpiration, influencing rainfall. Deforestation alters these patterns both locally and regionally.</li>
+</ol>`,
+    compQs: [
+      { type:'open', key:'sci_open', stem:'Name two causes of deforestation from the explanation and briefly explain each one.', hint:'Pick any two causes mentioned.' },
+      { type:'mcq',  key:'sci_mcq',  stem:'Which of these is listed as an environmental effect of deforestation?',
+        opts:['Increased rainfall','Loss of biodiversity','Cooler global temperatures','Richer soil quality'], correct:'Loss of biodiversity' },
+      { type:'scale', key:'sci_conf', stem:'How confident do you feel explaining deforestation to a classmate?', lo:'Not confident', hi:'Very confident' }
+    ]
+  },
+  {
+    id: 234, cat: 'Computer Science',
+    prompt: 'What is a binary tree and explain what root, leaf, and node mean.',
+    response: `<p>A <strong>binary tree</strong> is a data structure made up of connected elements called <em>nodes</em>, arranged in a hierarchy. The key rule is that each node can have <strong>at most two children</strong> — a left child and a right child. This constraint is what makes it "binary."</p>
+<p><strong>Key terms explained:</strong></p>
+<ul>
+<li><strong>Node</strong> — Any individual element in the tree. A node stores a value (like a number or a word) and may connect to child nodes below it. Every item in a binary tree is a node.</li>
+<li><strong>Root</strong> — The topmost node. It is the single starting point of the tree — the only node with no parent above it. When searching or traversing a binary tree, you always begin at the root.</li>
+<li><strong>Leaf</strong> — A node with no children. Leaves sit at the bottom of the tree, at the end of every branch. They are the endpoints of every path through the structure.</li>
+</ul>
+<p><strong>Example:</strong> A binary tree storing numbers 5, 3, 7, 1, and 4 might look like: 5 is the root; 3 and 7 are its left and right children; 1 and 4 are children of 3 — and since they have no children of their own, they are leaves.</p>
+<p>Binary trees are used widely in computer science: binary search trees for efficient searching, syntax trees in compilers, and heap structures in priority queues.</p>`,
+    compQs: [
+      { type:'open', key:'cs_open', stem:'What is the key rule that makes a binary tree "binary"? Explain in your own words.', hint:'Think about the maximum number of children per node.' },
+      { type:'mcq',  key:'cs_mcq',  stem:'Which of these correctly describes a leaf node?',
+        opts:['The topmost node in the tree','A node with exactly two children','A node with no children','The node stored in the middle'], correct:'A node with no children' },
+      { type:'scale', key:'cs_conf', stem:'How confident do you feel explaining binary trees to someone who has not heard of them?', lo:'Not confident', hi:'Very confident' }
+    ]
+  },
+  {
+    id: 371, cat: 'Humanities',
+    prompt: 'What is the bystander effect and what causes it?',
+    response: `<p>The <strong>bystander effect</strong> is a social psychological phenomenon in which individuals are <em>less</em> likely to offer help in an emergency when other people are present. Counterintuitively, the larger the group witnessing an event, the less likely any single person is to intervene.</p>
+<p>This was first studied systematically by psychologists John Darley and Bibb Latané following the 1964 murder of Kitty Genovese, whose cries for help were reportedly heard by dozens of neighbours — yet no one called the police for over thirty minutes.</p>
+<p><strong>Main causes:</strong></p>
+<ol>
+<li><strong>Diffusion of responsibility</strong> — When many people witness an event, each person feels individually less responsible for acting, assuming someone else will step in. The moral weight of helping is "spread" across the group, so no one feels the full obligation.</li>
+<li><strong>Pluralistic ignorance</strong> — People look to others to decide how serious a situation is. If no one else appears alarmed, individuals assume it is not an emergency — even if everyone privately feels concerned. Everyone mirrors everyone else's outward calm.</li>
+<li><strong>Evaluation apprehension</strong> — In a public setting, people fear looking foolish or overreacting. This social embarrassment can prevent action, especially when the situation is ambiguous.</li>
+</ol>
+<p>Importantly, knowing about the bystander effect can reduce it. People who understand diffusion of responsibility are measurably more likely to act when others do not.</p>`,
+    compQs: [
+      { type:'open', key:'hum_open', stem:'Describe in your own words why having more bystanders can actually make help less likely.', hint:'Think about what each individual person feels when surrounded by others.' },
+      { type:'mcq',  key:'hum_mcq',  stem:'Which of these is listed as a cause of the bystander effect in the explanation?',
+        opts:['Physical distance from the victim','Diffusion of responsibility','Poor lighting conditions','Time of day'], correct:'Diffusion of responsibility' },
+      { type:'scale', key:'hum_conf', stem:'How confident do you feel explaining the bystander effect and its causes?', lo:'Not confident', hi:'Very confident' }
+    ]
+  },
+  {
+    id: 447, cat: 'Meta-cognition',
+    prompt: 'Explain how to manage your time effectively during exam revision.',
+    response: `<p>Effective exam revision is less about working longer and more about working <em>strategically</em>. Here is a research-backed approach:</p>
+<ol>
+<li><strong>Set specific, measurable goals</strong> — "Revise chapter 4" is too vague. "Be able to explain the three causes of World War I from memory" is specific and testable. Specific goals tell you clearly when you have finished.</li>
+<li><strong>Build a realistic timetable</strong> — Map the time available before each exam and allocate subjects by priority — more time on weak areas, but do not abandon strengths. Build in buffer time for delays and rest.</li>
+<li><strong>Use spaced repetition</strong> — Multiple shorter sessions spread over days are far more effective than a single long cramming session. Each time you revisit material after a gap, memory consolidation strengthens.</li>
+<li><strong>Prioritise active recall</strong> — Re-reading notes feels productive but produces weak memory traces. Instead, close your notes and attempt to recall what you studied. Use practice questions, flashcards, or teach the material to someone else.</li>
+<li><strong>Take structured breaks</strong> — The Pomodoro technique (25 minutes focused work, 5-minute break) is well-supported by research on sustained attention. Long unbroken sessions produce diminishing returns as concentration fades.</li>
+<li><strong>Review and adapt</strong> — At the end of each day, assess whether you met your goals. If not, adjust tomorrow's plan rather than simply working longer. Flexibility and self-monitoring are central to effective self-regulated learning.</li>
+</ol>`,
+    compQs: [
+      { type:'open', key:'mc_open', stem:'What is the difference between a vague revision goal and a specific one? Give an example of each from what you just read.', hint:'Look at point 1 in the explanation.' },
+      { type:'mcq',  key:'mc_mcq',  stem:'Why does the explanation say re-reading notes alone is not very effective?',
+        opts:['It takes too long','It produces weak memory traces compared to active recall','Notes are usually inaccurate','It only works for science subjects'], correct:'It produces weak memory traces compared to active recall' },
+      { type:'scale', key:'mc_conf', stem:'How confident do you feel applying these revision strategies to your own studying?', lo:'Not confident', hi:'Very confident' }
+    ]
+  }
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────
+// GROUP and DELAY are set after the student picks their group on the welcome screen
+let GROUP   = null;
+let DELAY   = null;
+const CIRCUMF = 2 * Math.PI * 38; // svg circle r=38
+
+let currentIdx = 0;
+let allData    = {};
+let participant = {};
+
+// ── UTILS ──────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setProgress(barId, labelId, idx) {
+  const pct = (idx / TOPICS.length) * 100;
+  const el = document.getElementById(barId);
+  const lb = document.getElementById(labelId);
+  if (el) el.style.width = pct + '%';
+  if (lb) lb.textContent = `Topic ${idx + 1} of ${TOPICS.length}`;
+}
+
+function buildScale(containerId, lo, hi, prefix) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  [1,2,3,4,5].forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'scale-btn';
+    b.textContent = n;
+    b.type = 'button';
+    b.dataset.val = n;
+    b.onclick = () => {
+      wrap.querySelectorAll('.scale-btn').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function scaleVal(containerId) {
+  const sel = document.querySelector(`#${containerId} .scale-btn.sel`);
+  return sel ? parseInt(sel.dataset.val) : null;
+}
+
+function selectYNM(el, groupId, val) {
+  document.querySelectorAll(`#${groupId} .ynm-opt`).forEach(x => x.classList.remove('sel'));
+  el.classList.add('sel');
+  el.dataset.val = val;
+}
+
+function ynmVal(groupId) {
+  const sel = document.querySelector(`#${groupId} .ynm-opt.sel`);
+  return sel ? sel.dataset.val : null;
+}
+
+// ── SCREEN FLOWS ──────────────────────────────────────────────────────
+
+function goConsent() {
+  const name  = document.getElementById('f-name').value.trim();
+  const age   = document.getElementById('f-age').value;
+  const year  = document.getElementById('f-year').value.trim();
+  const subj  = document.getElementById('f-subj').value;
+  const ai    = document.getElementById('f-device').value;
+  const grp   = document.getElementById('f-group').value;
+  const err   = document.getElementById('err-welcome');
+  if (!name || !age || !year || !subj || !ai || !grp) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  // Set group and delay based on student's selection
+  GROUP = grp;
+  DELAY = GROUP === 'A' ? 16 : 49;
+
+  participant = { name, age, year, subject: subj, aiUsage: ai, group: GROUP, delaySeconds: DELAY };
+  show('s-consent');
+}
+
+function goFirstWait() {
+  const cb  = document.getElementById('consent-cb');
+  const err = document.getElementById('err-consent');
+  if (!cb.checked) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  loadWaiting();
+}
+
+// ── WAITING ───────────────────────────────────────────────────────────
+
+function loadWaiting() {
+  const t = TOPICS[currentIdx];
+  setProgress('pb-wait', 'pl-wait', currentIdx);
+  document.getElementById('wait-qtext').textContent = t.prompt;
+  show('s-waiting');
+  runTimer();
+}
+
+function runTimer() {
+  const ringFill = document.getElementById('ring-fill');
+  const ringNum  = document.getElementById('ring-num');
+  let elapsed = 0;
+  ringFill.style.strokeDashoffset = CIRCUMF;
+  ringNum.textContent = DELAY;
+
+  const tick = setInterval(() => {
+    elapsed++;
+    const remaining = DELAY - elapsed;
+    const progress  = elapsed / DELAY;
+    ringFill.style.strokeDashoffset = CIRCUMF * (1 - progress);
+    ringNum.textContent = remaining > 0 ? remaining : '✓';
+    if (elapsed >= DELAY) {
+      clearInterval(tick);
+      loadResponse();
+    }
+  }, 1000);
+}
+
+// ── RESPONSE + QUESTIONS ─────────────────────────────────────────────
+
+function loadResponse() {
+  const t = TOPICS[currentIdx];
+  setProgress('pb-resp', 'pl-resp', currentIdx);
+  document.getElementById('resp-pill').textContent    = t.cat;
+  document.getElementById('resp-prompt').textContent  = t.prompt;
+  document.getElementById('resp-body').innerHTML      = t.response;
+
+  // ── PART A: Wait experience questions ─────────────────────
+  const waitWrap = document.getElementById('wait-exp-qs');
+  waitWrap.innerHTML = '';
+
+  // WE1: Could you remember the question?
+  waitWrap.appendChild(buildWaitQ(
+    'WE1',
+    'When the response appeared, how clearly could you still remember what you had asked?',
+    'we1_remember', 'scale', 'I had completely forgotten', 'I remembered it perfectly'
+  ));
+
+  // WE2: Lost train of thought?
+  waitWrap.appendChild(buildWaitQ(
+    'WE2',
+    'During the wait, did you lose your train of thought or start thinking about something unrelated?',
+    'we2_drift', 'ynm3', null, null,
+    ['Yes, definitely', 'Slightly', 'No, I stayed focused']
+  ));
+
+  // WE3: Frustrated / bored?
+  waitWrap.appendChild(buildWaitQ(
+    'WE3',
+    'How did you feel emotionally during the wait?',
+    'we3_feeling', 'ynm4', null, null,
+    ['Frustrated / impatient', 'Bored', 'Fine / neutral', 'I used it to think']
+  ));
+
+  // WE4: How long did it feel?
+  waitWrap.appendChild(buildWaitQ(
+    'WE4',
+    'How long did this wait feel compared to what you expected?',
+    'we4_perceived', 'ynm3', null, null,
+    ['Much longer than expected', 'About what I expected', 'Shorter than expected']
+  ));
+
+  // ── PART B: Comprehension questions ──────────────────────
+  const compWrap = document.getElementById('comp-qs');
+  compWrap.innerHTML = '';
+
+  t.compQs.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'q-block';
+    div.innerHTML = `<div class="q-num">B${i+1}</div><div class="q-stem">${q.stem}</div>`;
+    if (q.hint) {
+      const h = document.createElement('div');
+      h.className = 'q-hint';
+      h.textContent = '💡 ' + q.hint;
+      div.appendChild(h);
+    }
+
+    if (q.type === 'open') {
+      const ta = document.createElement('textarea');
+      ta.className = 'q-textarea';
+      ta.id = q.key;
+      ta.placeholder = 'Write your answer here…';
+      div.appendChild(ta);
+
+    } else if (q.type === 'mcq') {
+      const list = document.createElement('div');
+      list.className = 'mcq-list';
+      q.opts.forEach(opt => {
+        const lbl = document.createElement('label');
+        lbl.className = 'mcq-opt';
+        lbl.innerHTML = `<input type="radio" name="${q.key}" value="${opt}"> ${opt}`;
+        lbl.querySelector('input').addEventListener('change', () => {
+          list.querySelectorAll('.mcq-opt').forEach(l => l.classList.remove('selected'));
+          lbl.classList.add('selected');
+        });
+        list.appendChild(lbl);
+      });
+      div.appendChild(list);
+
+    } else if (q.type === 'scale') {
+      const outer = document.createElement('div');
+      outer.className = 'scale-outer';
+      const btns = document.createElement('div');
+      btns.className = 'scale-btns';
+      btns.id = q.key + '_scale';
+      [1,2,3,4,5].forEach(n => {
+        const b = document.createElement('button');
+        b.className = 'scale-btn'; b.textContent = n; b.type = 'button';
+        b.onclick = () => { btns.querySelectorAll('.scale-btn').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); };
+        btns.appendChild(b);
+      });
+      const ends = document.createElement('div');
+      ends.className = 'scale-ends';
+      ends.innerHTML = `<span>${q.lo}</span><span>${q.hi}</span>`;
+      outer.appendChild(btns); outer.appendChild(ends);
+      div.appendChild(outer);
+    }
+    compWrap.appendChild(div);
+  });
+
+  // Update next label
+  document.getElementById('next-label').textContent =
+    currentIdx < TOPICS.length - 1 ? 'Next Topic →' : 'Final Questions →';
+
+  show('s-response');
+}
+
+function buildWaitQ(num, stem, key, type, lo, hi, opts) {
+  const div = document.createElement('div');
+  div.className = 'q-block';
+  div.innerHTML = `<div class="q-num">${num}</div><div class="q-stem">${stem}</div>`;
+
+  if (type === 'scale') {
+    const outer = document.createElement('div');
+    outer.className = 'scale-outer';
+    const btns = document.createElement('div');
+    btns.className = 'scale-btns';
+    btns.id = key + '_sw';
+    [1,2,3,4,5].forEach(n => {
+      const b = document.createElement('button');
+      b.className = 'scale-btn'; b.textContent = n; b.type = 'button';
+      b.onclick = () => { btns.querySelectorAll('.scale-btn').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); };
+      btns.appendChild(b);
+    });
+    const ends = document.createElement('div');
+    ends.className = 'scale-ends';
+    ends.innerHTML = `<span>${lo}</span><span>${hi}</span>`;
+    outer.appendChild(btns); outer.appendChild(ends);
+    div.appendChild(outer);
+
+  } else if (type === 'ynm3' || type === 'ynm4') {
+    const list = document.createElement('div');
+    list.className = 'ynm-list';
+    list.id = key + '_ynm';
+    opts.forEach(o => {
+      const el = document.createElement('div');
+      el.className = 'ynm-opt';
+      el.textContent = o;
+      el.onclick = () => {
+        list.querySelectorAll('.ynm-opt').forEach(x => x.classList.remove('sel'));
+        el.classList.add('sel');
+        el.dataset.val = o;
+      };
+      list.appendChild(el);
+    });
+    div.appendChild(list);
+  }
+  return div;
+}
+
+// ── SUBMIT RESPONSE ───────────────────────────────────────────────────
+
+function submitResponse() {
+  const t   = TOPICS[currentIdx];
+  const err = document.getElementById('err-resp');
+  let valid = true;
+  const ans = { topicId: t.id, category: t.cat, delayApplied: DELAY };
+
+  // Collect wait experience
+  const we1 = document.querySelector('#we1_remember_sw .scale-btn.sel');
+  const we2 = document.querySelector('#we2_drift_ynm .ynm-opt.sel');
+  const we3 = document.querySelector('#we3_feeling_ynm .ynm-opt.sel');
+  const we4 = document.querySelector('#we4_perceived_ynm .ynm-opt.sel');
+  if (!we1 || !we2 || !we3 || !we4) valid = false;
+  else {
+    ans.waitExp = {
+      rememberedQuestion: parseInt(we1.textContent),
+      lostThought: we2.dataset.val,
+      emotionalState: we3.dataset.val,
+      perceivedDuration: we4.dataset.val
+    };
+  }
+
+  // Collect comprehension
+  t.compQs.forEach(q => {
+    if (q.type === 'open') {
+      const v = document.getElementById(q.key)?.value.trim();
+      if (!v) valid = false; else ans[q.key] = v;
+    } else if (q.type === 'mcq') {
+      const c = document.querySelector(`input[name="${q.key}"]:checked`);
+      if (!c) valid = false;
+      else { ans[q.key] = c.value; ans[q.key + '_correct'] = c.value === q.correct; }
+    } else if (q.type === 'scale') {
+      const b = document.querySelector(`#${q.key}_scale .scale-btn.sel`);
+      if (!b) valid = false; else ans[q.key] = parseInt(b.textContent);
+    }
+  });
+
+  if (!valid) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  allData['topic_' + (currentIdx + 1)] = ans;
+  currentIdx++;
+
+  if (currentIdx < TOPICS.length) {
+    loadWaiting();
+  } else {
+    // Build final scales
+    buildScale('f-focus');
+    buildScale('f-overall');
+    show('s-final');
+  }
+}
+
+// ── SUBMIT FINAL ──────────────────────────────────────────────────────
+
+function submitFinal() {
+  const err     = document.getElementById('err-final');
+  const focus   = scaleVal('f-focus');
+  const affect  = ynmVal('f-affect');
+  const during  = ynmVal('f-during');
+  const ideal   = ynmVal('f-ideal');
+  const feeling = document.getElementById('f-feeling')?.value.trim();
+  const overall = scaleVal('f-overall');
+
+  if (!focus || !affect || !during || !ideal || !feeling || !overall) {
+    err.style.display = 'block'; return;
+  }
+  err.style.display = 'none';
+
+  // Compute auto-scores
+  let mcqScore = 0, mcqTotal = 0;
+  TOPICS.forEach((t, i) => {
+    t.compQs.forEach(q => {
+      if (q.type === 'mcq') {
+        mcqTotal++;
+        if (allData['topic_' + (i+1)]?.[q.key + '_correct']) mcqScore++;
+      }
+    });
+  });
+
+  const payload = {
+    meta: {
+      timestamp: new Date().toISOString(),
+      group: GROUP,
+      delaySeconds: DELAY,
+      ...participant
+    },
+    topics: allData,
+    finalSection: { focusRating: focus, waitAffected: affect, duringWait: during, idealWait: ideal, waitFeeling: feeling, overallRating: overall },
+    autoScore: { mcqCorrect: mcqScore, mcqTotal, mcqPct: Math.round(mcqScore/mcqTotal*100) }
+  };
+
+  document.getElementById('debrief-group').textContent =
+    GROUP === 'A' ? `approximately ${DELAY} seconds (shorter condition)` : `approximately ${DELAY} seconds (longer condition)`;
+
+  document.getElementById('final-data').textContent =
+    '── PARTICIPANT DATA — COPY OR SCREENSHOT ──\n' +
+    JSON.stringify(payload, null, 2);
+
+  show('s-thankyou');
+}
+</script>
+</body>
+</html>
