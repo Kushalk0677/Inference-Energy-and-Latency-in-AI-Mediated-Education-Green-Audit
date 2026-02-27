@@ -1,5 +1,5 @@
 # ==============================================================================
-#  CORRECTED EXPERIMENT — Phi-3-mini-4k-instruct
+#  EXPERIMENT — Phi-3-mini-4k-instruct
 #  Run this script TWICE:
 #    Run 1: SET USE_QUANTIZATION = False   → produces FP16 results
 #    Run 2: SET USE_QUANTIZATION = True    → produces NF4 results
