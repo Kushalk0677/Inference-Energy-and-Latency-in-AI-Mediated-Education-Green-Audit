@@ -1,0 +1,101 @@
+ID,CATEGORY,PROMPT
+1,Mathematics,What is a limit in calculus and how do you evaluate lim(x→2) of (x² - 4)/(x - 2)?
+2,Mathematics,"Explain how to solve a quadratic equation using the quadratic formula, and walk through 2x² + 5x - 3 = 0."
+3,Mathematics,What is the difference between a function and a relation? Give an example of each.
+4,Mathematics,Explain what the slope of a line represents and how to calculate it from two points.
+5,Mathematics,How do you factor a trinomial of the form ax² + bx + c? Show the process with an example.
+6,Mathematics,"What are exponent rules? Explain the product rule, quotient rule, and power rule with examples."
+7,Mathematics,Explain what a logarithm is and how it relates to exponentiation. What is log₂(8)?
+8,Mathematics,What is the difference between linear and exponential growth? Give a real-world example of each.
+9,Mathematics,How do you solve a system of two linear equations using substitution?
+10,Mathematics,Explain what absolute value means geometrically on a number line.
+11,Mathematics,What is the binomial theorem and how would you expand (x + y)³?
+12,Mathematics,Explain the difference between a permutation and a combination.
+13,Mathematics,What is the chain rule in calculus and when do you use it?
+14,Mathematics,Explain what a derivative represents geometrically and how to find the derivative of x³.
+15,Mathematics,What is integration and how does it relate to area under a curve?
+16,Mathematics,Explain what a matrix is and how to multiply two 2x2 matrices.
+17,Mathematics,What is the Pythagorean theorem and how do you apply it to find a missing side?
+18,Mathematics,Explain what a prime number is and why 1 is not considered prime.
+19,Mathematics,What is modular arithmetic and how does it work?
+20,Mathematics,"Explain the difference between mean, median, and mode."
+21,Science,What are the main causes of deforestation and its effects on the environment?
+22,Science,"Explain what photosynthesis is, what inputs it needs, and what it produces."
+23,Science,What is cellular respiration and how does it differ from breathing?
+24,Science,Explain the structure of DNA and what base pairing rules apply.
+25,Science,What is mitosis and why do cells need to divide?
+26,Science,Explain what meiosis is and how it differs from mitosis.
+27,Science,What is natural selection and how does it lead to evolution over time?
+28,Science,Explain the difference between an ecosystem and a biome.
+29,Science,What is the role of the cell membrane and what does selectively permeable mean?
+30,Science,Explain the difference between prokaryotic and eukaryotic cells.
+31,Science,What is the function of the mitochondria and why is it called the powerhouse of the cell?
+32,Science,Explain what an enzyme is and how it works.
+33,Science,What is osmosis and how does it differ from diffusion?
+34,Science,Explain the structure and function of the nucleus.
+35,Science,What is the difference between aerobic and anaerobic respiration?
+36,Science,Explain what a food web is and how energy flows through it.
+37,Science,What is the nitrogen cycle and why is it important?
+38,Science,Explain what a chromosome is and how it relates to genes and DNA.
+39,Science,What is a gene and what does it mean for a gene to be expressed?
+40,Science,Explain what a mutation is and give an example of how it can affect an organism.
+41,Programming_CS,"What is a binary tree and explain what root, leaf, and node mean."
+42,Programming_CS,What is a variable in programming? Explain it like I am 10 years old using a box analogy.
+43,Programming_CS,What is a for loop? Explain it like a chore list.
+44,Programming_CS,Explain what an if statement is in programming using a traffic light analogy.
+45,Programming_CS,What is a function in programming and why do we use them?
+46,Programming_CS,Explain the difference between a while loop and a for loop.
+47,Programming_CS,What is a list (or array) in programming and how do you access elements in it?
+48,Programming_CS,Explain what a bug is in programming and give an example of a common one.
+49,Programming_CS,What does it mean to compile a program?
+50,Programming_CS,Explain what recursion is with the example of calculating a factorial.
+51,Programming_CS,What is the difference between a syntax error and a runtime error?
+52,Programming_CS,Explain what a stack data structure is and give an example of its use.
+53,Programming_CS,What is a queue data structure and how does it differ from a stack?
+54,Programming_CS,Explain what a linked list is.
+55,Programming_CS,What is a hash table and how does it work?
+56,Programming_CS,Explain what a graph data structure is and give a real-world example.
+57,Programming_CS,What is a sorting algorithm? Explain bubble sort.
+58,Programming_CS,Explain how merge sort works.
+59,Programming_CS,What is quicksort and how does it work?
+60,Programming_CS,Explain what binary search is and why it is faster than linear search.
+61,Humanities,What is the bystander effect and what causes it?
+62,Humanities,Explain the main causes of World War I using the MAIN acronym.
+63,Humanities,What was the significance of the French Revolution and its key outcomes?
+64,Humanities,Explain what the Industrial Revolution was and how it changed society.
+65,Humanities,What was the Cold War and the main tensions between the USA and USSR?
+66,Humanities,Explain the causes and consequences of the Atlantic Slave Trade.
+67,Humanities,What was the significance of the Magna Carta?
+68,Humanities,Explain what colonialism is and how it affected Africa and Asia.
+69,Humanities,What were the main causes of World War II?
+70,Humanities,Explain the importance of the Renaissance period.
+71,Humanities,What was the significance of the Civil Rights Movement in the USA?
+72,Humanities,Explain what the Holocaust was and how it happened.
+73,Humanities,What was the significance of the Berlin Wall?
+74,Humanities,Explain what apartheid was in South Africa.
+75,Humanities,What was the significance of the Russian Revolution?
+76,Humanities,Explain what the Great Depression was and what caused it.
+77,Humanities,What was the New Deal and what was it designed to do?
+78,Humanities,Explain what imperialism is.
+79,Humanities,What was the significance of the Enlightenment?
+80,Humanities,Explain what the Reformation was and why it happened.
+81,Metacognition,Explain how to manage your time effectively during exam revision.
+82,Metacognition,Explain what metacognition means and why it helps learning.
+83,Metacognition,What is spaced repetition and why is it effective?
+84,Metacognition,Explain the Pomodoro technique.
+85,Metacognition,What is active recall?
+86,Metacognition,Explain interleaving in studying.
+87,Metacognition,What is the difference between surface and deep learning?
+88,Metacognition,Explain the growth versus fixed mindset.
+89,Metacognition,What is elaborative interrogation?
+90,Metacognition,Explain the Feynman technique.
+91,Metacognition,What is the difference between recognition and recall?
+92,Metacognition,Explain what retrieval practice is and why it works.
+93,Metacognition,What is the testing effect?
+94,Metacognition,Explain what desirable difficulties are in learning.
+95,Metacognition,What is the difference between massed and distributed practice?
+96,Metacognition,Explain what a learning objective is and how to write one.
+97,Metacognition,What is self-regulated learning?
+98,Metacognition,Explain what a study schedule is and how to build one.
+99,Metacognition,What is cognitive load and how can you reduce it while studying?
+100,Metacognition,Explain what the forgetting curve is.
