@@ -90,6 +90,10 @@ where $Q_{\text{ped}}$ is pedagogical quality (1–10), $E_{\text{net}}$ is net 
 │   ├── cloud_comparison_results.csv  # Cloud LLM latency measurements
 │   └── model_comparison_results.csv  # Appendix A model selection experiment
 │
+├── supplements/
+│   ├── multimodel_lpw_supplement.docx          ← Multi-model LpW validation (Mistral 7B, TinyLlama, Phi-3)
+│   └── math_stats_supplement.docx              ← Mathematical and statistical supplement
+│
 └── student_study/
     ├── research_study_app.html     # Web app used for student interaction study
     └── form.txt                    # Consent / data collection form text
