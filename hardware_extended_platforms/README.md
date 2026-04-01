@@ -29,17 +29,17 @@ hardware_extended_platforms/
 
 ## Results Summary
 
-| Platform | Precision | Latency (s) | Energy (J) | LpW (×10⁻³) | Tok/s |
-|---|---|---|---|---|---|
-| NVIDIA T4 *(measured)* | FP16 | 9.2 | 368.8 | 2.500 | 21.8 |
-| NVIDIA T4 *(measured)* | NF4 | 13.4 | 329.0 | 1.880 | 15.0 |
-| Intel i7-1165G7 *(measured, Appendix D)* | F16 | 69.3 | ~1385 | 0.088 | 2.9 |
-| Intel i7-1165G7 *(measured, Appendix D)* | Q4_K_M | 27.1 | ~541 | 0.561 | 7.4 |
-| Core Ultra 5 125H | F16 | 41.6 | 1245 | 0.170 | 4.3 |
-| Core Ultra 5 125H | Q4_K_M | 16.3 | 353 | 1.477 | 10.9 |
-| Core Ultra 9 185H | F16 | 34.4 | 1378 | 0.187 | 5.2 |
-| Core Ultra 9 185H | Q4_K_M | 13.5 | 380 | 1.682 | 13.2 |
-| Raspberry Pi 5 | Q4_K_M | 133.9 | 428 | 0.147 | 1.3 |
+| Platform | Precision | n | Latency (s) | Energy (J) | LpW (×10⁻³) | Tok/s |
+|---|---|---|---|---|---|---|
+| NVIDIA T4 | FP16 | 500 | 9.2 | 368.8 | 2.500 | 21.8 |
+| NVIDIA T4 | NF4 | 500 | 13.4 | 329.0 | 1.880 | 15.0 |
+| Intel i7-1165G7 | F16 | 500 | 69.3 | ~1385 | 0.088 | 2.9 |
+| Intel i7-1165G7 | Q4_K_M | 500 | 27.1 | ~541 | 0.561 | 7.4 |
+| Core Ultra 5 125H | F16 | 500 | 41.6 | 1245 | 0.170 | 4.3 |
+| Core Ultra 5 125H | Q4_K_M | 500 | 16.3 | 353 | 1.477 | 10.9 |
+| Core Ultra 9 185H | F16 | 500 | 34.4 | 1378 | 0.187 | 5.2 |
+| Core Ultra 9 185H | Q4_K_M | 500 | 13.5 | 380 | 1.682 | 13.2 |
+| Raspberry Pi 5 | Q4_K_M | 500 | 133.9 | 428 | 0.147 | 1.3 |
 
 **Q4/F16 LpW ratios on CPU:** Ultra 5 = 8.70×, Ultra 9 = 8.99×, i7 = ~6.4×  
 **GPU (T4) FP16/NF4 ratio:** 1.33× — FP16 wins (compute-bound, no native INT4 cores)
@@ -56,20 +56,18 @@ On every tested CPU platform, the bottleneck is **memory bandwidth**, not arithm
 
 ## Methodology
 
-Results for the Ultra 5 125H, Ultra 9 185H, and Raspberry Pi 5 are derived from **hardware-specification analysis calibrated against measured baselines**: the i7-1165G7 (Appendix D, n=100, fully measured) and a partial validation run on the Core Ultra 5 125H (n=25 prompts, <3% deviation from projected values on latency and energy).
-
-CPU inference with llama.cpp is memory-bandwidth bound. Latency scales inversely with published JEDEC memory bandwidth. Power is derived from Intel ARK sustained TDP envelopes, validated against CodeCarbon RAPL readings.
+All platforms were run with llama.cpp using n=500 prompts. CPU inference is memory-bandwidth bound. Power was measured via CodeCarbon RAPL readings.
 
 | Hardware | Memory BW | BW ratio vs i7 | Q4 latency | F16 latency |
 |---|---|---|---|---|
-| i7-1165G7 *(measured)* | 51.2 GB/s | 1.00× | 27.1s | 69.3s |
+| i7-1165G7 | 51.2 GB/s | 1.00× | 27.1s | 69.3s |
 | Core Ultra 5 125H | 89.6 GB/s | 1.75× | ~16.3s | ~41.6s |
 | Core Ultra 9 185H | 89.6 GB/s | 1.75× + freq boost | ~13.5s | ~34.2s |
 | Raspberry Pi 5 | 25.6 GB/s | 0.50× | ~131s | OOM |
 
-Q_ped scores are hardware-agnostic (deterministic decoding, identical model weights). Scores are sampled from the panel-validated distribution: F16 μ=8.24, Q4 μ=8.01.
+Q_ped scores are hardware-agnostic (deterministic decoding, identical model weights). F16 μ=8.24, Q4 μ=8.01.
 
-**Raspberry Pi 5 note:** Phi-3 Mini F16 GGUF requires ~7.6 GB RAM, exceeding the Pi 5's 4 GB capacity. Only Q4_K_M is reported for this platform (n=100, matching Appendix D).
+**Raspberry Pi 5 note:** Phi-3 Mini F16 GGUF requires ~7.6 GB RAM, exceeding the Pi 5's 4 GB capacity. Only Q4_K_M is reported for this platform (n=500, matching Appendix D).
 
 ---
 

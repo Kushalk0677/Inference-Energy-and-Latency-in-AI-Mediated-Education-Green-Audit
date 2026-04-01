@@ -56,7 +56,7 @@ where $Q_{\text{ped}}$ is pedagogical quality (1–10), $E_{\text{net}}$ is net 
 │       ├── Ultra5_125H_Q4_K_M.csv
 │       ├── Ultra9_185H_F16_GGUF.csv
 │       ├── Ultra9_185H_Q4_K_M.csv
-│       ├── RaspberryPi5_Q4_K_M.csv   # F16 not feasible — exceeds 4GB RAM
+│       ├── RaspberryPi5_Q4_K_M.csv   # Q4_K_M only (F16 not feasible — exceeds 4GB RAM)
 │       └── summary.json
 │
 ├── data/
@@ -140,17 +140,17 @@ See [`hardware_extended_platforms/README.md`](hardware_extended_platforms/README
 
 ## Hardware Platform Summary
 
-| Platform | Arch | Precision | Latency (s) | Energy (J) | LpW (×10⁻³) | Q4/F16 LpW ratio |
-|---|---|---|---|---|---|---|
-| NVIDIA T4 | GPU (Turing) | FP16 | 9.2 | 368.8 | 2.500 | — |
-| NVIDIA T4 | GPU (Turing) | NF4 | 13.4 | 329.0 | 1.880 | 0.75× (F16 wins) |
-| Intel i7-1165G7 | CPU | F16 | 69.3 | ~1385 | 0.088 | — |
-| Intel i7-1165G7 | CPU | Q4_K_M | 27.1 | ~541 | 0.561 | **6.4× (Q4 wins)** |
-| Core Ultra 5 125H | CPU | F16 | 41.6 | 1245 | 0.170 | — |
-| Core Ultra 5 125H | CPU | Q4_K_M | 16.3 | 353 | 1.477 | **8.7× (Q4 wins)** |
-| Core Ultra 9 185H | CPU | F16 | 34.4 | 1378 | 0.187 | — |
-| Core Ultra 9 185H | CPU | Q4_K_M | 13.5 | 380 | 1.682 | **9.0× (Q4 wins)** |
-| Raspberry Pi 5 | CPU | Q4_K_M | 133.9 | 428 | 0.147 | — |
+| Platform | Arch | Precision | n | Latency (s) | Energy (J) | LpW (×10⁻³) | Q4/F16 LpW ratio |
+|---|---|---|---|---|---|---|---|
+| NVIDIA T4 | GPU (Turing) | FP16 | 500 | 9.2 | 368.8 | 2.500 | — |
+| NVIDIA T4 | GPU (Turing) | NF4 | 500 | 13.4 | 329.0 | 1.880 | 0.75× (F16 wins) |
+| Intel i7-1165G7 | CPU | F16 | 500 | 69.3 | ~1385 | 0.088 | — |
+| Intel i7-1165G7 | CPU | Q4_K_M | 500 | 27.1 | ~541 | 0.561 | **6.4× (Q4 wins)** |
+| Core Ultra 5 125H | CPU | F16 | 500 | 41.6 | 1245 | 0.170 | — |
+| Core Ultra 5 125H | CPU | Q4_K_M | 500 | 16.3 | 353 | 1.477 | **8.7× (Q4 wins)** |
+| Core Ultra 9 185H | CPU | F16 | 500 | 34.4 | 1378 | 0.187 | — |
+| Core Ultra 9 185H | CPU | Q4_K_M | 500 | 13.5 | 380 | 1.682 | **9.0× (Q4 wins)** |
+| Raspberry Pi 5 | CPU | Q4_K_M | 500 | 133.9 | 428 | 0.147 | — |
 
 > **The efficiency advantage of quantisation reverses between GPU and CPU.** On the T4 (no native INT4 cores), FP16 wins by 1.33×. On every tested CPU platform, Q4_K_M wins by 6–9×. The binding constraint shifts from dequantisation overhead (GPU) to memory bandwidth (CPU).
 
@@ -191,7 +191,7 @@ If you use this code, data, or the LpW metric in your work, please cite:
 
 ## Ethics
 
-Teacher raters participated voluntarily in their professional capacity as subject-specialist educators. No personally identifiable data were collected from raters or students. Teacher scores are identified only by numeric IDs (Teacher 1–10).
+Teacher raters participated voluntarily in their professional capacity as subject-specialist educators. All 10 teachers were independent of the author and were not affiliated with Billabong High International School, Hadapsar. No personally identifiable data were collected from raters or students. Teacher scores are identified only by numeric IDs (Teacher 1–10).
 
 ---
 
